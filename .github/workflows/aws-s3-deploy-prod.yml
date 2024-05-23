@@ -1,0 +1,29 @@
+name: Test AWS S3 deploy
+
+on: workflow_dispatch
+
+jobs:
+  S3PackageUpload:
+    runs-on: ubuntu-latest
+    environment: Production
+    permissions:
+      id-token: write   # This is required for requesting the JWT
+      contents: read    # This is required for actions/checkout
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0
+
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v.4.0.2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-session-name: GitHubActionsTestAWSS3Deploy
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # Upload a file to AWS s3
+      - name:  Copy files to s3
+        run: |
+          aws s3 cp ./test.txt s3://${{ secrets.BUCKET_NAME }}/
